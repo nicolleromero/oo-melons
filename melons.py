@@ -9,6 +9,9 @@ class AbstractMelonOrder():
     def __init__(self, species, qty, order_type, tax):
         """Initialize melon order attributes."""
 
+        if qty > 100:
+            raise TooManyMelonsError()
+
         self.species = species
         self.qty = qty
         self.order_type = order_type
@@ -54,24 +57,18 @@ class AbstractMelonOrder():
 
 class TooManyMelonsError(ValueError):
 
-    def __init__(self, species, qty, order_type, tax, message='No more than 100 melons!'):
-        self.message = message
-        super().__init__(self.message)
-
-    def error(self):
-
-        if self.qty > 100:
-            raise TooManyMelonsError
+    def __init__(self, message='No more than 100 melons!'):
+        super().__init__(message)
 
 
-class DomesticMelonOrder(TooManyMelonsError, AbstractMelonOrder):
+class DomesticMelonOrder(AbstractMelonOrder):
     """A melon order within the USA."""
 
     def __init__(self, species, qty):
         super().__init__(species, qty, 'domestic', 0.08)
 
 
-class InternationalMelonOrder(TooManyMelonsError, AbstractMelonOrder):
+class InternationalMelonOrder(AbstractMelonOrder):
     """An international (non-US) melon order."""
 
     def __init__(self, species, qty, country_code):
@@ -79,11 +76,10 @@ class InternationalMelonOrder(TooManyMelonsError, AbstractMelonOrder):
         self.country_code = country_code
 
     def get_country_code(self):
-
         return self.country_code
 
 
-class GovernmentMelonOrder(AbstractMelonOrder, TooManyMelonsError):
+class GovernmentMelonOrder(AbstractMelonOrder):
 
     def __init__(self, species, qty, country_code,):
         super().__init__(species, qty, 'government', 0.0)
@@ -94,7 +90,9 @@ class GovernmentMelonOrder(AbstractMelonOrder, TooManyMelonsError):
         self.passed_inspection = passed
 
 
-test1 = DomesticMelonOrder('watermelon', 3)
-order0 = InternationalMelonOrder("watermelon", 6, "AUS")
-order2 = GovernmentMelonOrder("watermelon", 106, "AUS")
-print(order2.get_total())
+if __name__ == "__main__":
+
+    test1 = DomesticMelonOrder('watermelon', 3)
+    order0 = InternationalMelonOrder("watermelon", 6, "AUS")
+    order2 = GovernmentMelonOrder("watermelon", 106, "AUS")
+    print(order2.get_total())
