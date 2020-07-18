@@ -1,4 +1,5 @@
 """Classes for melon orders."""
+from datetime import datetime
 import random
 
 
@@ -16,7 +17,16 @@ class AbstractMelonOrder():
 
     def get_base_price(self):
         """Choose a random integer between 5-9 as the base price"""
+
         base_price = random.choice(range(5, 10))
+
+        now = datetime.now()
+        purchase_time = now.hour
+        purchase_day = now.weekday()
+
+        if purchase_time >= 8 and purchase_time <= 11:
+            if purchase_day in range(0, 5):
+                base_price = base_price + 4.0
 
         return base_price
 
@@ -42,14 +52,26 @@ class AbstractMelonOrder():
         self.shipped = True
 
 
-class DomesticMelonOrder(AbstractMelonOrder):
+class TooManyMelonsError(ValueError):
+
+    def __init__(self, species, qty, order_type, tax, message='No more than 100 melons!'):
+        self.message = message
+        super().__init__(self.message)
+
+    def error(self):
+
+        if self.qty > 100:
+            raise TooManyMelonsError
+
+
+class DomesticMelonOrder(TooManyMelonsError, AbstractMelonOrder):
     """A melon order within the USA."""
 
     def __init__(self, species, qty):
         super().__init__(species, qty, 'domestic', 0.08)
 
 
-class InternationalMelonOrder(AbstractMelonOrder):
+class InternationalMelonOrder(TooManyMelonsError, AbstractMelonOrder):
     """An international (non-US) melon order."""
 
     def __init__(self, species, qty, country_code):
@@ -61,7 +83,7 @@ class InternationalMelonOrder(AbstractMelonOrder):
         return self.country_code
 
 
-class GovernmentMelonOrder(AbstractMelonOrder):
+class GovernmentMelonOrder(AbstractMelonOrder, TooManyMelonsError):
 
     def __init__(self, species, qty, country_code,):
         super().__init__(species, qty, 'government', 0.0)
@@ -74,5 +96,5 @@ class GovernmentMelonOrder(AbstractMelonOrder):
 
 test1 = DomesticMelonOrder('watermelon', 3)
 order0 = InternationalMelonOrder("watermelon", 6, "AUS")
-order2 = GovernmentMelonOrder("watermelon", 6, "AUS")
+order2 = GovernmentMelonOrder("watermelon", 106, "AUS")
 print(order2.get_total())
